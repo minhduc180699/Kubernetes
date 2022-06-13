@@ -1,0 +1,30 @@
+prometheus:
+  url: http://prometheus-release-server.monitoring.svc
+  port: 80
+rules:
+  default: true
+  custom:
+    - seriesQuery: '{__name__=~"^request_total$",namespace!=""}'
+      resources:
+        template: <<.Resource>>
+      name:
+        matches: ""
+        as: "requests_increase_per_10m"
+      metricsQuery: round(sum(increase(<<.Series>>{<<.LabelMatchers>>}[10m])) by (<<.GroupBy>>), 1)
+    - seriesQuery: '{__name__=~"^request_total$"}'
+      resources:
+        template: <<.Resource>>
+        overrides:
+          exported_namespace:
+            resource: "namespace"
+      name:
+        matches: ""
+        as: "requests_increase_rate"
+      metricsQuery: round(sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>), 0.001)
+    - seriesQuery: '{__name__=~"^request_total$",namespace!=""}'
+      resources:
+        template: <<.Resource>>
+      name:
+        matches: ""
+        as: "requests_total_count"
+      metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)

@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ds-test
+  name: ds-test
+  namespace: ds-ns
+spec:
+  # number of replicas for app
+  # replicas: 2
+  # strategy for deployment
+  strategy:
+    # update without downtime
+    type: RollingUpdate
+    rollingUpdate:
+      # maxSurge is the maximum number of pods that can be scheduled above the desired number of pods
+      maxSurge: 1
+      # maxUnavailable is the maximum number of pods that can be unavailable
+      maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app: ds-test
+  # tempate for deployment
+  
+  template:
+    metadata:
+      labels:
+        app: ds-test
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8088"
+        prometheus.io/scrape: "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: ds-test
+            # hostname of node
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - image: gcr.io/bright-lattice-339306/docker-test:v2.5
+        # imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
+        name: ds-test
+        env:
+          - name: KAFKA_BROKER
+            value: "35.239.93.122:9092"
+          - name: KAFKA_TOPIC
+            value: "test_topic"
+        ports:
+        - containerPort: 8088
+          # hostPort: 8088
+        # readinessProbe is configured to check if the container is ready to serve requests
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /deepsignal/test/control/status
+            port: 8088
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 5
+        # # liveness is used to check if the container is alive
+        # livenessProbe:
+        #   httpGet:
+        #     path: /deepsignal/test/control/status
+        #     port: 8088
+        #   initialDelaySeconds: 180
+        #   periodSeconds: 60
+        #   timeoutSeconds: 5
+        resources:
+          limits:
+            # maximal amount of cpu & memory to be used of the container
+            cpu: 900m
+            memory: 400Mi
+          requests:
+            # minimum guaranteed amount of cpu & memory to open new pod
+            cpu: 500m
+            memory: 200Mi
+      restartPolicy: Always

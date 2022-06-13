@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: personal-agent-api-frontend
+  name: personal-agent-api-frontend
+  namespace: personal-agent
+spec:
+  # number of replicas for app
+  # replicas: 2
+  # strategy for deployment
+  strategy:
+    # update without downtime
+    type: RollingUpdate
+    rollingUpdate:
+      # maxSurge is the maximum number of pods that can be scheduled above the desired number of pods
+      maxSurge: 1
+      # maxUnavailable is the maximum number of pods that can be unavailable
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: personal-agent-api-frontend
+  # tempate for deployment
+  
+  template:
+    metadata:
+      labels:
+        app: personal-agent-api-frontend
+      # annotations:
+      #   prometheus.io/path: "/deepsignal/realtime/metasearch/metrics"
+      #   prometheus.io/port: "8088"
+      #   prometheus.io/scrape: "true"
+    spec:
+      # do not select node pool tag kafka
+      # nodeSelector:
+      #   cloud.google.com/gke-nodepool: deepsignal-api-pool
+      #   cloud.google.com/gke-nodepool: default-pool
+      # nodeSelector:
+      #   ds-nodepool: kafka
+      # affinity:
+      #   nodeAntiAffinity:
+      #     # do match 3 labels
+          
+    
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #     - labelSelector:
+      #         matchLabels:
+      #           app: ds-test
+      #       # hostname of node
+      #       topologyKey: kubernetes.io/hostname
+      containers:
+      - image: gcr.io/bright-lattice-339306/personal-agent-api-frontend:v0.0.1
+        imagePullPolicy: IfNotPresent
+        # imagePullPolicy: Always
+        name: personal-agent-api-frontend
+        env:
+          - name: KAFKA_BROKER
+            value: "my-release-kafka-headless.ds-ns.svc.cluster.local:9092"
+          - name: KAFKA_TOPIC
+            value: "test_topic"
+          - name: REDIS_CLUSTER
+            value: "my-release-redis-cluster-headless.redis.svc.cluster.local:6379"
+          - name: REDIS_PASSWORD
+            value: "6mHwLFOuPy"
+          - name: REDIS_CACHE_EXPIRED_TIME
+            value: "900" #seconds
+          - name: REDIRECT_URL
+            value: "ds-test-service"
+          - name: URL_EXCLUDE
+            value: "twitter.com"
+        ports:
+        - containerPort: 8080
+          # hostPort: 8088
+        # readinessProbe is configured to check if the container is ready to serve requests
+        # readinessProbe:
+        #   failureThreshold: 3
+        #   httpGet:
+        #     path: /deepsignal/test/control/status
+        #     port: 8088
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 20
+        #   successThreshold: 1
+        #   timeoutSeconds: 5
+        # liveness is used to check if the container is alive
+        # livenessProbe:
+        #   httpGet:
+        #     path: /deepsignal/test/control/status
+        #     port: 8088
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 60
+        #   timeoutSeconds: 5
+        resources:
+          limits:
+            # maximal amount of cpu & memory to be used of the container
+            cpu: 900m
+            memory: 400Mi
+          requests:
+            # minimum guaranteed amount of cpu & memory to open new pod
+            cpu: 500m
+            memory: 200Mi
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: personal-agent-service-frontend
+  namespace: personal-agent
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: personal-agent-api-frontend
+  type: LoadBalancer
+
+  

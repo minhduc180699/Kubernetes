@@ -1,0 +1,11 @@
+replicaCount: 2
+externalAccess:
+  enabled: true
+  service:
+    type: LoadBalancer
+  autoDiscovery:
+    enabled: true
+serviceAccount:
+  create: true
+rbac:
+  create: true
