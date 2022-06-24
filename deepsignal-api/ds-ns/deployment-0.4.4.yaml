@@ -1,10 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ds-ns
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: personal-agent-api-backend
-  name: personal-agent-api-backend
-  namespace: personal-agent
+    app: ds-test
+  name: ds-test
+  namespace: ds-ns
 spec:
   # number of replicas for app
   # replicas: 2
@@ -16,44 +21,42 @@ spec:
       # maxSurge is the maximum number of pods that can be scheduled above the desired number of pods
       maxSurge: 1
       # maxUnavailable is the maximum number of pods that can be unavailable
-      maxUnavailable: 25%
+      maxUnavailable: 20%
   selector:
     matchLabels:
-      app: personal-agent-api-backend
+      app: ds-test
   # tempate for deployment
   
   template:
     metadata:
       labels:
-        app: personal-agent-api-backend
-      # annotations:
-      #   prometheus.io/path: "/deepsignal/realtime/metasearch/metrics"
-      #   prometheus.io/port: "8088"
-      #   prometheus.io/scrape: "true"
+        app: ds-test
+      annotations:
+        prometheus.io/path: "/deepsignal/realtime/metasearch/metrics"
+        prometheus.io/port: "8088"
+        prometheus.io/scrape: "true"
     spec:
       # do not select node pool tag kafka
       # nodeSelector:
       #   cloud.google.com/gke-nodepool: deepsignal-api-pool
       #   cloud.google.com/gke-nodepool: default-pool
-      # nodeSelector:
-      #   ds-nodepool: kafka
-      # affinity:
-      #   nodeAntiAffinity:
-      #     # do match 3 labels
-          
-    
-      #   podAntiAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #     - labelSelector:
-      #         matchLabels:
-      #           app: ds-test
-      #       # hostname of node
-      #       topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        ds-nodepool: realtime-metasearch
+      affinity:
+        # nodeAntiAffinity:
+          # do match 3 labels
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: ds-test
+            # hostname of node
+            topologyKey: kubernetes.io/hostname
       containers:
-      - image: gcr.io/bright-lattice-339306/personal-agent-api-backend:v.0.0.1
+      - image: gcr.io/bright-lattice-339306/deepsignal-api-worker:v0.4.22
         imagePullPolicy: IfNotPresent
         # imagePullPolicy: Always
-        name: personal-agent-api-backend
+        name: ds-test
         env:
           - name: KAFKA_BROKER
             value: "my-release-kafka-headless.ds-ns.svc.cluster.local:9092"
@@ -66,11 +69,13 @@ spec:
           - name: REDIS_CACHE_EXPIRED_TIME
             value: "900" #seconds
           - name: REDIRECT_URL
-            value: "ds-test-service"
+            value: "34.111.198.6:80"
           - name: URL_EXCLUDE
             value: "twitter.com"
+          - name: "METASEARCH_URL"
+            value: "http://ds-test-service.ds-ns.svc.cluster.local:80/deepsignal/realtime/metasearch/getMetaSearch"
         ports:
-        - containerPort: 8081
+        - containerPort: 8088
           # hostPort: 8088
         # readinessProbe is configured to check if the container is ready to serve requests
         # readinessProbe:
@@ -82,7 +87,7 @@ spec:
         #   periodSeconds: 20
         #   successThreshold: 1
         #   timeoutSeconds: 5
-        # liveness is used to check if the container is alive
+        # # # liveness is used to check if the container is alive
         # livenessProbe:
         #   httpGet:
         #     path: /deepsignal/test/control/status
@@ -91,27 +96,12 @@ spec:
         #   periodSeconds: 60
         #   timeoutSeconds: 5
         resources:
-          limits:
-            # maximal amount of cpu & memory to be used of the container
-            cpu: 900m
-            memory: 400Mi
+          # limits:
+          #   # maximal amount of cpu & memory to be used of the container
+          #   cpu: 1800m #old 900m
+          #   memory: 2000Mi #old 1000Mi
           requests:
             # minimum guaranteed amount of cpu & memory to open new pod
-            cpu: 300m
+            cpu: 500m
             memory: 200Mi
-      restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: personal-agent-service-backend
-  namespace: personal-agent
-spec:
-  ports:
-  - port: 8081
-    protocol: TCP
-    targetPort: 8081
-  selector:
-    app: personal-agent-api-backend
-
-  
+      # restartPolicy: Never
