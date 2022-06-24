@@ -176,8 +176,8 @@ alertmanager:
   ## Node labels for alertmanager pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  nodeSelector:
-    ds-nodepool: monitoring
+  # nodeSelector:
+  #   ds-nodepool: monitoring
 
   ## Pod affinity
   ##
@@ -871,8 +871,8 @@ server:
   ## Node labels for Prometheus server pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  nodeSelector:
-    ds-nodepool: monitoring
+  # nodeSelector:
+  #   ds-nodepool: monitoring
 
   ## Pod affinity
   ##
@@ -1216,8 +1216,8 @@ pushgateway:
   ## Node labels for pushgateway pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  nodeSelector:
-    ds-nodepool: monitoring
+  # nodeSelector:
+  #   ds-nodepool: monitoring
 
   ## Annotations to be added to pushgateway pods
   ##

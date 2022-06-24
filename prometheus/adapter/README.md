@@ -7,7 +7,7 @@ Use the following command to install the Helm Chart [Prometheus-cominity](https:
 Install by using:
 
 ```
-helm install prometheus-release prometheus-community/prometheus -n monitoring -f prometheus-values.yaml
+helm install prometheus-adapter prometheus-community/prometheus-adapter -n monitoring -f adapter-values.yaml
 ```
 
 
