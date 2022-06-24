@@ -1,6 +1,10 @@
-Install Kafka using Bitnami Helm Chart
+Install Kafka using Bitnami Helm Chart [Kafka](https://github.com/bitnami/charts/tree/master/bitnami/kafka/#installing-the-chart)
 
-helm install
+Step 1: Install the Bitnami Helm Chart:
+```
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install my-release bitnami/kafka -n monitoring -f kafka-values.yaml
+```
 
 NAME: my-release
 LAST DEPLOYED: Sun Mar 20 17:31:03 2022

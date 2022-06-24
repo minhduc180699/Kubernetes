@@ -1,8 +1,9 @@
 
 Use the following command to install the Bitnami Helm Chart:
     ko dung bitnami
-    <!-- helm install my-release bitnami/kube-prometheus -n monitoring --set prometheus.service.type=LoadBalancer -->
-
+```
+    helm install my-release bitnami/kube-prometheus -n monitoring --set prometheus.service.type=LoadBalancer
+```
 --------------------------------------------------------------------------------
 NAME: my-release
 LAST DEPLOYED: Wed Mar 30 08:04:13 2022

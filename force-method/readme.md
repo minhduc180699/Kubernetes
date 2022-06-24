@@ -1,7 +1,10 @@
 Force kill ns:
+```
 kubectl proxy &
 kubectl get namespace ds-ns-rm-qa -o json |jq '.spec = {"finalizers":[]}' >temp.json
 curl -k -H "Content-Type: application/json" -X PUT --data-binary @temp.json 127.0.0.1:8001/api/v1/namespaces/ds-ns-rm-qa/finalize
+```
+
 
 DELETE ALL BY STATUS:
 kubectl get pod -n monitoring | grep Evicted | awk '{print $1}' | xargs kubectl delete pod -n monitoring
